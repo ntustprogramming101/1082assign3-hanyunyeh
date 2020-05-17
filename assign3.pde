@@ -13,7 +13,11 @@ int groundhogX,groundhogY,groundhogSpeed;
 int cabbageX,cabbageY;
 int lifeY;
 
-
+int groundhogLestX, groundhogLestY;
+int groundhogMoveTime = 250;//move to next grid need 0.25s
+int actionFrame; //groundhog's moving frame 
+float lastTime; //time when the groundhog finished moving
+int stroll,strollLest;
 
 PImage title, gameover, startNormal, startHovered, restartNormal, restartHovered;
 PImage bg, soil8x24;
@@ -71,6 +75,10 @@ lifeY = 10;
   groundhogX = 320;
   groundhogY = 80;
   groundhogSpeed = 80;
+  
+  frameRate(60);
+  lastTime = millis(); // save lastest time call the millis();
+  stroll=0;
   
   life = loadImage("img/life.png");
 
@@ -138,53 +146,53 @@ case GAME_RUN: // In-Game
 	    stroke(255,255,0);
 	    strokeWeight(5);
 	    fill(253,184,19);
-	    ellipse(590,50,120,120);
+	    ellipse(590,50+stroll,120,120);
 
 		// Grass
 		fill(124, 204, 25);
 		noStroke();
-		rect(0, 160 - GRASS_HEIGHT, width, GRASS_HEIGHT);
+		rect(0, 160 - GRASS_HEIGHT+stroll, width, GRASS_HEIGHT);
 
 		// Soil - REPLACE THIS PART WITH YOUR LOOP CODE!
     // soil0
 		for(int w=0; w<8; w++){
       for(int h=0;h<4;h++){
-        image(soil0, w*80 , 160+h*80);
+        image(soil0, w*80 , 160+h*80+stroll);
         if(w==h)
-        image(stone1,w*80,160+h*80);
+        image(stone1,w*80,160+h*80+stroll);
       }
     }
     // soil1
     for(int w=0; w<8; w++){
       for(int h=0;h<4;h++){
-        image(soil1, w*80 , 480+h*80);
+        image(soil1, w*80 , 480+h*80+stroll);
         if(w-4==h)
-        image(stone1,w*80,480+h*80);
+        image(stone1,w*80,480+h*80+stroll);
       }
     }
     
     // soil2
     for(int w=0; w<8; w++){
       for(int h=0;h<4;h++){
-        image(soil2, w*80 , 800+h*80);
+        image(soil2, w*80 , 800+h*80+stroll);
       }
     }
     // soil3
     for(int w=0; w<8; w++){
       for(int h=0;h<4;h++){
-        image(soil3, w*80 , 1120+h*80);
+        image(soil3, w*80 , 1120+h*80+stroll);
       }
     }
     // soil4
     for(int w=0; w<8; w++){
       for(int h=0;h<4;h++){
-        image(soil4, w*80 , 1440+h*80);
+        image(soil4, w*80 , 1440+h*80+stroll);
       }
     }    
     // soil5
     for(int w=0; w<8; w++){
       for(int h=0;h<4;h++){
-        image(soil5, w*80 , 1760+h*80);
+        image(soil5, w*80 , 1760+h*80+stroll);
       }
     } 
     
@@ -194,14 +202,14 @@ case GAME_RUN: // In-Game
       for(int h=0;h<4;h++)
       {
         if(w+2==h||w-2==h||w-6==h)
-        image(stone1,w*80,800+h*80);
+        image(stone1,w*80,800+h*80+stroll);
         if(w+2==h||w-2==h||w-6==h)
-        image(stone1,w*80,800+(3-h)*80);
+        image(stone1,w*80,800+(3-h)*80+stroll);
         
         if(w+2==h||w-2==h||w-6==h)
-        image(stone1,w*80,1120+h*80);
+        image(stone1,w*80,1120+h*80+stroll);
         if(w+2==h||w-2==h||w-6==h)
-        image(stone1,w*80,1120+(3-h)*80);
+        image(stone1,w*80,1120+(3-h)*80+stroll);
       }
     }
     
@@ -211,11 +219,11 @@ case GAME_RUN: // In-Game
       for(int h=0;h<4;h++)
       {
         if(((w+2-h))%3==0)
-        image(stone1,w*80,1440+(3-h)*80);
+        image(stone1,w*80,1440+(3-h)*80+stroll);
         if(((w+1-h))%3==0)
         {
-        image(stone1,w*80,1440+(3-h)*80);
-        image(stone2,w*80,1440+(3-h)*80);
+        image(stone1,w*80,1440+(3-h)*80+stroll);
+        image(stone2,w*80,1440+(3-h)*80+stroll);
         }
       }
     }
@@ -226,11 +234,11 @@ case GAME_RUN: // In-Game
       for(int h=0;h<4;h++)
       {
         if(((w-h))%3==0)
-        image(stone1,w*80,1760+(3-h)*80);
+        image(stone1,w*80,1760+(3-h)*80+stroll);
         if(((w-1-h))%3==0)
         {
-        image(stone1,w*80,1760+(3-h)*80);
-        image(stone2,w*80,1760+(3-h)*80);
+        image(stone1,w*80,1760+(3-h)*80+stroll);
+        image(stone2,w*80,1760+(3-h)*80+stroll);
         }
       }
     }
@@ -241,35 +249,56 @@ case GAME_RUN: // In-Game
       image(life, 10+i*(50+20),lifeY);
     }
     
-    //set soldier
-    image(soldier,soldierX,soldierY);
-    //let the soldier move 
-    soldierSpeed = 2;
-    soldierX += soldierSpeed;
-    soldierX %= 640; 
+
     
-    //set cabbage
-    if(cabbageTouched == false){
-      image(cabbage,cabbageX,cabbageY);
-    }
-    
-    //set groundhog 
-    
-    if(downPressed == true){
-    image(groundhogDown,groundhogX,groundhogY);
-    }
-    
-    if(rightPressed == true){
-    image(groundhogRight,groundhogX,groundhogY);
-    }
-    
-    if(leftPressed == true){
-    image(groundhogLeft,groundhogX,groundhogY);
-    }
-    
-    if(noPressed == true){
-    image(groundhogIdle,groundhogX,groundhogY);
-    }
+    // Player
+    //draw the groundhogDown image between 1-14 frames
+      if (downPressed) {
+        if (stroll>-(20*80)){
+           actionFrame++; //in 1s actionFrame=60
+          if (actionFrame > 0 && actionFrame <15) {
+            stroll -= 80 / 15.0;
+            image(groundhogDown,groundhogX,groundhogY);
+          } else {
+            stroll = strollLest- 80;
+            downPressed = false;
+          }
+        }else{
+          actionFrame++; //in 1s actionFrame=60
+          if (actionFrame > 0 && actionFrame <15) {
+            groundhogY += 80 / 15.0;
+            image(groundhogDown,groundhogX,groundhogY);
+          } else {
+            groundhogY = groundhogLestY + 80;
+            downPressed = false;
+          }
+        }
+      }
+      //draw the groundhogLeft image between 1-14 frames
+      if (leftPressed) {
+        actionFrame++;
+        if (actionFrame > 0 && actionFrame <15) {
+          groundhogX -= 80 / 15.0;
+         image(groundhogLeft,groundhogX,groundhogY);
+        } else {
+          groundhogX= groundhogLestX - 80;
+          leftPressed = false;
+        }
+      }
+      //draw the groundhogRight image between 1-14 frames
+      if (rightPressed) {
+        actionFrame++;
+        if (actionFrame > 0 && actionFrame < 15) {
+          groundhogX += 80 / 15.0;
+          image(groundhogRight,groundhogX,groundhogY);
+        } else {
+          groundhogX = groundhogLestX + 80;
+          rightPressed = false;
+        }
+      }
+      if(!downPressed&&!leftPressed&&!rightPressed){
+        image(groundhogIdle,groundhogX,groundhogY);
+      }
     
     
     //boundary detection
@@ -347,25 +376,36 @@ case GAME_RUN: // In-Game
 
 void keyPressed(){
 	// Add your moving input code here
+  float newTime = millis();
   if (key == CODED){
     switch (keyCode){
 
       case DOWN:
+       if (newTime - lastTime > groundhogMoveTime) {
         downPressed = true;
-        noPressed = false;
-        groundhogY += groundhogSpeed;
+
+        actionFrame = 0;
+        groundhogLestY = groundhogY;
+        strollLest=stroll;
+        lastTime = newTime;
         
-        
+       }
         break;
       case RIGHT:
+      if (newTime - lastTime > groundhogMoveTime) {
         rightPressed = true;
-        noPressed = false;
-         groundhogX += groundhogSpeed;
+        actionFrame = 0;
+        groundhogLestX = groundhogX;
+        lastTime = newTime;
+      }
         break;
       case LEFT :
+       if (newTime - lastTime > groundhogMoveTime) {
         leftPressed = true;
-        noPressed = false;
-        groundhogX -= groundhogSpeed;
+        actionFrame = 0;
+        groundhogLestX = groundhogX;
+        lastTime = newTime;
+       }
         break;
     }
   }
@@ -391,27 +431,3 @@ void keyPressed(){
     }
 }
 
-void keyReleased(){
-    if (key == CODED){
-    switch (keyCode){
-
-      case DOWN:
-        downPressed = false;
-        noPressed = true;
-        inGame = true;
-        if (cameraOffsetY > -1600){
-        cameraOffsetY -= 80;
-        lifeY += 80;
-        }
-        break;
-      case RIGHT:
-        rightPressed = false;
-        noPressed = true;
-        break;
-      case LEFT :
-        leftPressed = false;
-        noPressed = true;
-        break;
-    }
-  }
-}
